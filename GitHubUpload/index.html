@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" href="icon.png">
+<title>DIYbrary</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Courier+Prime:wght@400;700&family=Nunito:wght@400;600;700;800&display=swap">
+<link rel="stylesheet" href="diy.css?v=2">
+<style>
+.tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center;padding-block:18px 6px}
+.tools input[type=search]{flex:1;min-width:200px;padding:10px 14px;border:2px solid var(--line);border-radius:10px;background:var(--card)}
+.count{font:700 13px var(--type);color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.shelf{margin-top:22px}
+.plate{display:inline-flex;gap:10px;align-items:baseline;background:var(--ink);color:#fff;border-radius:6px 6px 0 0;padding:5px 14px}
+.plate b{font:700 14px var(--type);color:var(--mark)}
+.plate{background:var(--ink)}
+.plate span{font:800 18px var(--display)}
+.row{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end;padding:16px 14px 0;background:linear-gradient(#f8ecd2,#f3e3c0);border:1px solid var(--line);border-bottom:0;border-radius:0 8px 0 0}
+.plank{height:16px;background:var(--wood);border-bottom:5px solid var(--wood-dark);border-radius:0 0 4px 4px}
+.book{width:150px;background:var(--bk);color:#fff;border:0;border-radius:4px 8px 8px 4px;padding:0 0 8px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:6px;position:relative;box-shadow:inset 7px 0 0 rgba(0,0,0,.18),0 -2px 0 rgba(0,0,0,.08)}
+.book:hover,.book:focus-visible{transform:translateY(-6px)}
+@media (prefers-reduced-motion:no-preference){.book{transition:transform .12s}}
+.book img,.book .noimg{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:4px 8px 0 0;background:rgba(255,255,255,.2);display:block}
+.book h3{font-size:17px;padding:0 8px 0 14px;overflow-wrap:anywhere}
+.book .by{font-size:13px;padding:0 8px 0 14px;opacity:.92}
+.book .callno{margin:2px 8px 0 14px;align-self:flex-start}
+.book .tried{position:absolute;top:6px;right:6px;font:700 11px var(--type);background:#fff;color:var(--accent);border:2px solid var(--accent);border-radius:4px;padding:1px 5px;transform:rotate(6deg);text-transform:uppercase}
+.empty{background:var(--card);border:2px dashed var(--line);border-radius:12px;padding:28px;text-align:center;margin-top:22px}
+.cardbox{background:var(--card);border:2px solid var(--ink);border-radius:12px;padding:20px;margin-top:22px;max-width:640px}
+.cardbox h2{font-size:28px}
+.cardbox .line{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:12px 0}
+.cardbox input{padding:8px 12px;border:2px solid var(--line);border-radius:8px}
+.stamps{list-style:none;padding:0;margin:12px 0 0;display:flex;flex-direction:column;gap:6px;font-family:var(--type)}
+.stamps li{display:flex;gap:10px;justify-content:space-between;border-bottom:1px dashed var(--line);padding:4px 0;flex-wrap:wrap}
+footer{padding-block:30px;color:var(--muted);font-size:14px}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <a class="brand" href="#shelves"><img src="logo.png" alt="DIYbrary" onerror="this.outerHTML='<span class=word><b>DIY</b>brary</span>'"><small>How-to books by our class</small></a>
+  <span class="sp"></span>
+  <nav class="nav"><a href="#shelves" id="nav-shelves">Shelves</a><a href="#card" id="nav-card">My library card</a><a href="maker.html">Book Maker</a></nav>
+</div></header>
+
+<main class="wrap">
+  <section id="v-shelves">
+    <div class="tools">
+      <input type="search" id="search" placeholder="Search by title or author" aria-label="Search books">
+      <span class="count" id="count"></span>
+    </div>
+    <div id="shelves"></div>
+  </section>
+
+  <section id="v-card" hidden>
+    <div class="cardbox">
+      <h2>Library card</h2>
+      <div class="line"><label for="cardname">Name on card</label><input id="cardname" maxlength="30" placeholder="First name"></div>
+      <p id="rank"></p>
+      <ul class="stamps" id="stamps"></ul>
+      <p style="color:var(--muted);font-size:14px">Your card is saved on this Chromebook only.</p>
+    </div>
+  </section>
+  <footer>Books are written, photographed and tested by students.</footer>
+</main>
+
+<script src="diy.js?v=2"></script>
+<script>
+const { CATS, esc, callNo, getCard, saveCard } = DIY;
+let SHELF = [];
+const $ = s => document.querySelector(s);
+
+function drawShelves() {
+  const q = $('#search').value.trim().toLowerCase();
+  const card = getCard();
+  const list = SHELF.filter(b => !q || (b.title + ' ' + b.author).toLowerCase().includes(q));
+  $('#count').textContent = SHELF.length ? `${list.length} of ${SHELF.length} book${SHELF.length === 1 ? '' : 's'}` : '';
+  if (!SHELF.length) { $('#shelves').innerHTML = `<div class="empty"><h2>The shelves are empty</h2><p>Books show up here after your teacher shelves them. Build yours in the <a href="maker.html">Book Maker</a>.</p></div>`; return; }
+  if (!list.length) { $('#shelves').innerHTML = `<div class="empty"><p>No books match that search.</p></div>`; return; }
+  $('#shelves').innerHTML = CATS.map(c => {
+    const books = list.filter(b => b.cat === c.id).sort((a, b) => a.title.localeCompare(b.title));
+    if (!books.length) return '';
+    return `<div class="shelf"><div class="plate"><b>${c.no}</b><span>${esc(c.name)}</span></div>
+      <div class="row">${books.map(b => `<button class="book" style="--bk:${esc(b.color)}" data-id="${esc(b.id)}">
+        ${b.thumb ? `<img src="${esc(b.thumb)}" alt="">` : '<span class="noimg"></span>'}
+        ${card.stamps[b.id] ? '<span class="tried">Tried it</span>' : ''}
+        <h3>${esc(b.title)}</h3><span class="by">by ${esc(b.author)}</span><span class="callno">${esc(callNo(b))}</span></button>`).join('')}</div>
+      <div class="plank"></div></div>`;
+  }).join('');
+}
+
+function loadBook(id, v) {
+  return new Promise((res, rej) => {
+    if (!/^[a-z0-9-]+$/.test(id)) return rej();
+    window.DIY_BOOK = b => res(b);
+    const s = document.createElement('script');
+    s.src = 'books/' + id + '.js?v=' + (v || 1); s.onerror = rej;
+    document.head.appendChild(s); s.onload = () => s.remove();
+  });
+}
+$('#shelves').addEventListener('click', async e => {
+  const t = e.target.closest('.book'); if (!t) return;
+  const meta = SHELF.find(b => b.id === t.dataset.id); if (!meta) return;
+  try { const b = await loadBook(meta.id, meta.updated); b.id = meta.id; DIY.open(b, { stampable: true, onClose: drawShelves }); }
+  catch (err) { t.querySelector('.by').textContent = 'This book could not be opened.'; }
+});
+$('#search').addEventListener('input', drawShelves);
+
+function drawCard() {
+  const c = getCard(), ids = Object.keys(c.stamps), n = ids.length;
+  $('#cardname').value = c.name;
+  const rank = n >= 10 ? 'Master Maker' : n >= 6 ? 'Maker' : n >= 3 ? 'Apprentice' : n >= 1 ? 'Reader' : 'Visitor';
+  $('#rank').innerHTML = `<b>${n}</b> book${n === 1 ? '' : 's'} tried &middot; Rank: <b>${rank}</b>`;
+  $('#stamps').innerHTML = ids.map(id => { const s = c.stamps[id]; return `<li><span>${esc(s.title)} <small>by ${esc(s.author)}</small></span><span>${esc(s.date)} ${s.stars ? '&#9733;'.repeat(s.stars) : ''}</span></li>`; }).join('') || '<li>No stamps yet. Finish a book and stamp your card.</li>';
+}
+$('#cardname').addEventListener('input', e => { const c = getCard(); c.name = e.target.value; saveCard(c); });
+
+function route() {
+  const v = location.hash === '#card' ? 'card' : 'shelves';
+  $('#v-shelves').hidden = v !== 'shelves'; $('#v-card').hidden = v !== 'card';
+  $('#nav-shelves').classList.toggle('on', v === 'shelves'); $('#nav-card').classList.toggle('on', v === 'card');
+  if (v === 'card') drawCard(); else drawShelves();
+}
+addEventListener('hashchange', route);
+
+/* books.js is rebuilt by "Shelve Books"; load it fresh each visit. */
+const m = document.createElement('script');
+m.src = 'books.js?t=' + Date.now();
+m.onload = m.onerror = () => { SHELF = Array.isArray(window.DIY_SHELF) ? window.DIY_SHELF : []; route(); };
+document.head.appendChild(m);
+route();
+</script>
+</body>
+</html>

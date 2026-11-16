@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" href="icon.png">
+<title>DIY Book Maker</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Courier+Prime:wght@400;700&family=Nunito:wght@400;600;700;800&display=swap">
+<link rel="stylesheet" href="diy.css?v=2">
+<style>
+.cols{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:22px;align-items:start;padding-block:20px 40px}
+@media (max-width:860px){.cols{grid-template-columns:minmax(0,1fr)}}
+.sec{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:12px;margin-bottom:18px}
+.sec>h2{font-size:24px;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.sec>h2 small{font:700 12px var(--type);color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.sec p{margin:0;color:var(--muted)}
+label{display:flex;flex-direction:column;gap:4px;font-weight:700;font-size:14px}
+input[type=text],input[type=number],textarea,select{padding:9px 12px;border:2px solid var(--line);border-radius:8px;background:#fff;font-weight:400;font-size:16px;width:100%}
+textarea{resize:vertical}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+.coverrow,.steprow{display:flex;gap:14px;flex-wrap:wrap}
+.photo{width:220px;max-width:100%;aspect-ratio:4/3;border:2px dashed var(--muted);border-radius:10px;background:var(--paper);cursor:pointer;padding:0;overflow:hidden;font-weight:800;color:var(--muted);flex:none}
+.photo img{width:100%;height:100%;object-fit:cover;display:block}
+.fields{flex:1;min-width:220px;display:flex;flex-direction:column;gap:10px}
+.swatches{display:flex;gap:8px;flex-wrap:wrap}
+.swatches button{width:34px;height:34px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 2px var(--line);cursor:pointer;background:var(--c)}
+.swatches button.on{box-shadow:0 0 0 3px var(--ink)}
+.matrow{display:flex;gap:8px}
+.step{border:1.5px solid var(--line);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:10px}
+.stephead{display:flex;gap:6px;align-items:center}
+.num{font:800 18px var(--display);background:var(--mark);border-radius:6px;padding:2px 10px}
+.hint{font-size:13px;color:#8a5a00;background:#fff1c2;border-radius:6px;padding:4px 8px;margin:0}
+.qbox{border:1.5px solid var(--line);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:8px}
+.choice{display:flex;gap:8px;align-items:center}
+.choice input[type=radio]{width:20px;height:20px;flex:none}
+aside{position:sticky;top:12px;display:flex;flex-direction:column;gap:14px}
+@media (max-width:860px){aside{position:static}}
+.panel{background:var(--card);border:2px solid var(--ink);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.panel h2{font-size:20px}
+.todo{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:5px;font-size:14px}
+.todo li{display:flex;gap:8px;align-items:flex-start}
+.todo li::before{content:"";width:14px;height:14px;border:2px solid var(--muted);border-radius:4px;flex:none;margin-top:3px}
+.todo li.ok{color:var(--good);font-weight:700}
+.todo li.ok::before{background:var(--good);border-color:var(--good)}
+.saved{font:700 12px var(--type);color:var(--muted);text-transform:uppercase;letter-spacing:.08em;min-height:16px}
+#cam{position:fixed;inset:0;background:rgba(20,25,48,.9);z-index:60;display:flex;align-items:center;justify-content:center;padding:12px}
+.cambox{background:var(--card);border-radius:14px;padding:16px;width:min(680px,100%);display:flex;flex-direction:column;gap:12px}
+.cambox video,.cambox img{width:100%;aspect-ratio:4/3;object-fit:cover;background:#000;border-radius:10px;display:block}
+.camrow{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <a class="brand" href="index.html"><img src="logo-maker.png" alt="DIY Book Maker" onerror="this.outerHTML='<span class=word><b>DIY</b> Book Maker</span>'"><small>Write a how-to book for the DIYbrary</small></a>
+  <span class="sp"></span>
+  <nav class="nav"><a href="index.html">Visit the DIYbrary</a></nav>
+</div></header>
+
+<main class="wrap"><div class="cols">
+  <div id="form"></div>
+  <aside>
+    <div class="panel">
+      <h2>Ready to shelve?</h2>
+      <ul class="todo" id="todo"></ul>
+      <div class="saved" id="saved" aria-live="polite"></div>
+    </div>
+    <div class="panel">
+      <button class="btn teal" data-act="preview">Preview my book</button>
+      <button class="btn" data-act="turnin" id="turnin">Turn in my book</button>
+      <p id="turnmsg" style="margin:0;font-size:14px;color:var(--muted)"></p>
+      <button class="btn alt" data-act="backup">Save a backup file</button>
+      <button class="btn alt" data-act="openfile">Open a backup file</button>
+      <button class="mini" data-act="startover">Start over</button>
+      <input type="file" id="filein" accept=".diybook,.json,application/json" hidden>
+    </div>
+  </aside>
+</div></main>
+
+<div id="cam" hidden role="dialog" aria-modal="true" aria-label="Take a photo">
+  <div class="cambox">
+    <video id="camvid" playsinline muted></video>
+    <img id="camshot" alt="Your photo" hidden>
+    <p id="cammsg" style="margin:0;color:var(--bad);font-weight:700"></p>
+    <div class="camrow" id="camlive"><button class="btn" id="camsnap">Snap photo</button><button class="btn alt" id="camflip">Switch camera</button><button class="btn alt" id="camup">Upload a photo instead</button><span class="sp"></span><button class="mini" id="camx">Cancel</button></div>
+    <div class="camrow" id="camdone" hidden><button class="btn" id="camuse">Use this photo</button><button class="btn alt" id="camre">Retake</button></div>
+    <p style="margin:0;font-size:14px;color:var(--muted)">Get close. Show your hands doing the step. Use a plain background. No faces needed.</p>
+    <input type="file" id="camfile" accept="image/*" hidden>
+  </div>
+</div>
+
+<script src="diy.js?v=2"></script>
+<script>
+const { CATS, COLORS, DIFF, esc, slug, clean } = DIY;
+const $ = s => document.querySelector(s);
+const blankStep = () => ({ img: '', text: '', tip: '', warn: '' });
+const blank = () => ({ title: '', author: '', cat: '', hook: '', diff: 1, mins: 10, color: COLORS[0], cover: '', materials: ['', '', ''],
+  steps: [1, 2, 3, 4, 5, 6].map(blankStep), quiz: [0, 1, 2].map(() => ({ q: '', choices: ['', '', ''], answer: -1 })), test: { tester: '', stuck: '', changes: ['', ''] } });
+let D = blank();
+
+/* ---------- saving (IndexedDB, on this Chromebook) ---------- */
+let dbp = null;
+function db() { return dbp || (dbp = new Promise((res, rej) => { const r = indexedDB.open('diybrary-maker', 1); r.onupgradeneeded = () => r.result.createObjectStore('kv'); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); })); }
+async function dbGet(k) { const d = await db(); return new Promise((res, rej) => { const r = d.transaction('kv').objectStore('kv').get(k); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); }
+async function dbSet(k, v) { const d = await db(); return new Promise((res, rej) => { const t = d.transaction('kv', 'readwrite'); t.objectStore('kv').put(v, k); t.oncomplete = res; t.onerror = () => rej(t.error); }); }
+let saveT = null;
+function save() {
+  $('#saved').textContent = 'Saving...';
+  clearTimeout(saveT);
+  saveT = setTimeout(async () => { try { await dbSet('draft', D); $('#saved').textContent = 'Saved on this Chromebook'; } catch (e) { $('#saved').textContent = 'Could not save here. Save a backup file!'; } }, 500);
+}
+function adopt(raw) { const c = clean(raw); c.test = c.test || { tester: '', stuck: '', changes: ['', ''] }; while (c.materials.length < 1) c.materials.push(''); while (c.steps.length < 1) c.steps.push(blankStep()); delete c.thumb; return c; }
+
+/* ---------- checklist ---------- */
+const WEAK = ['i', 'you', 'then', 'next', 'after', 'first', 'now', 'so', 'and', 'the', 'we', 'your', 'once', 'when', 'finally', 'lastly', 'second', 'third'];
+const weakStart = t => { const w = (t.trim().split(/[\s,]+/)[0] || '').toLowerCase(); return w && WEAK.includes(w); };
+function checks() {
+  const s = D.steps, f = v => v.trim().length > 0;
+  return [
+    { ok: f(D.title) && f(D.author) && !!D.cat, text: 'Title, author and shelf chosen' },
+    { ok: D.hook.trim().length >= 20, text: 'Hook that says why to learn this' },
+    { ok: !!D.cover, text: 'Cover photo' },
+    { ok: D.materials.filter(f).length >= 1, text: 'Materials list' },
+    { ok: s.length >= 6 && s.length <= 10, text: `6 to 10 steps (you have ${s.length})` },
+    { ok: s.every(x => x.img && f(x.text)), text: `Every step has a photo and words (${s.filter(x => x.img && f(x.text)).length} of ${s.length})` },
+    { ok: s.filter(x => f(x.warn)).length >= 2, text: `At least 2 "Watch out" warnings (${s.filter(x => f(x.warn)).length})` },
+    { ok: D.quiz.every(q => f(q.q) && q.choices.every(f) && q.answer >= 0), text: '3 quiz questions with the right answer marked' },
+    { ok: f(D.test.tester) && f(D.test.stuck), text: 'Silent test done with a partner' },
+    { ok: D.test.changes.every(f), text: '2 changes made after the test' }
+  ];
+}
+function drawTodo() {
+  const c = checks(), left = c.filter(x => !x.ok).length;
+  $('#todo').innerHTML = c.map(x => `<li class="${x.ok ? 'ok' : ''}">${esc(x.text)}</li>`).join('');
+  $('#turnin').disabled = left > 0;
+  $('#turnmsg').textContent = left ? `${left} thing${left === 1 ? '' : 's'} left before you can turn it in.` : 'Everything is checked. Turn it in!';
+}
+
+/* ---------- the form ---------- */
+const ta = (p, v, max, rows, ph) => `<textarea data-p="${p}" maxlength="${max}" rows="${rows}" placeholder="${esc(ph)}">${esc(v)}</textarea>`;
+const tx = (p, v, max, ph) => `<input type="text" data-p="${p}" maxlength="${max}" value="${esc(v)}" placeholder="${esc(ph)}">`;
+function draw() {
+  const n = D.steps.length;
+  $('#form').innerHTML = `
+  <section class="sec"><h2>The cover <small>Day 1 and 3</small></h2>
+    <div class="coverrow">
+      <button class="photo" data-act="cover">${D.cover ? `<img src="${esc(D.cover)}" alt="Cover photo">` : 'Take cover photo'}</button>
+      <div class="fields">
+        <label>Title (start with "How to...")${tx('title', D.title, 60, 'How to fold a paper airplane')}</label>
+        <div class="grid2">
+          <label>Author (first name + last initial)${tx('author', D.author, 30, 'Jordan P.')}</label>
+          <label>Shelf<select data-p="cat"><option value="">Choose a shelf</option>${CATS.map(c => `<option value="${c.id}" ${D.cat === c.id ? 'selected' : ''}>${c.no} ${esc(c.name)}</option>`).join('')}</select></label>
+        </div>
+      </div>
+    </div>
+    <label>The hook: why should someone learn this? (1 or 2 sentences)${ta('hook', D.hook, 240, 2, 'This plane flies across the whole classroom, and you only need one sheet of paper.')}</label>
+    <div class="grid2">
+      <label>How hard is it?<select data-p="diff">${[1, 2, 3].map(i => `<option value="${i}" ${D.diff === i ? 'selected' : ''}>${DIFF[i]}</option>`).join('')}</select></label>
+      <label>Minutes it takes<input type="number" data-p="mins" min="1" max="60" value="${D.mins}"></label>
+    </div>
+    <div><label>Book color</label><div class="swatches">${COLORS.map(c => `<button style="--c:${c}" class="${D.color === c ? 'on' : ''}" data-act="color" data-c="${c}" aria-label="Book color ${c}"></button>`).join('')}</div></div>
+  </section>
+
+  <section class="sec"><h2>Materials <small>Day 2</small></h2>
+    <p>List everything a beginner needs, with amounts. "2 sheets of printer paper" is better than "paper".</p>
+    ${D.materials.map((m, i) => `<div class="matrow">${tx('materials.' + i, m, 60, 'What they need')}<button class="mini" data-act="delmat" data-i="${i}" ${D.materials.length < 2 ? 'disabled' : ''} aria-label="Remove material ${i + 1}">Remove</button></div>`).join('')}
+    <div><button class="mini" data-act="addmat" ${D.materials.length >= 15 ? 'disabled' : ''}>+ Add a material</button></div>
+  </section>
+
+  <section class="sec"><h2>Steps <small>Days 3 and 4</small></h2>
+    <p>One action per step. Start each step with an action word like Fold, Cut, Hold or Mix. Write for someone who has never done this.</p>
+    ${D.steps.map((s, i) => `<div class="step">
+      <div class="stephead"><span class="num">Step ${i + 1}</span><span class="sp"></span>
+        <button class="mini" data-act="up" data-i="${i}" ${i === 0 ? 'disabled' : ''} aria-label="Move step ${i + 1} up">&uarr;</button>
+        <button class="mini" data-act="down" data-i="${i}" ${i === n - 1 ? 'disabled' : ''} aria-label="Move step ${i + 1} down">&darr;</button>
+        <button class="mini" data-act="delstep" data-i="${i}" ${n < 2 ? 'disabled' : ''}>Remove</button></div>
+      <div class="steprow">
+        <button class="photo" data-act="photo" data-i="${i}">${s.img ? `<img src="${esc(s.img)}" alt="Photo for step ${i + 1}">` : 'Take photo'}</button>
+        <div class="fields">
+          <label>What to do${ta('steps.' + i + '.text', s.text, 220, 3, 'Fold the paper in half the long way, then open it back up.')}</label>
+          <p class="hint" data-hint="${i}" ${weakStart(s.text) ? '' : 'hidden'}>Try starting with an action word (Fold, Cut, Press) instead.</p>
+          <label>Pro tip (optional)${tx('steps.' + i + '.tip', s.tip, 140, 'Run your fingernail along the fold to make it sharp.')}</label>
+          <label>Watch out! A common mistake (need at least 2 in your book)${tx('steps.' + i + '.warn', s.warn, 140, 'If the corners do not line up, the plane will curve.')}</label>
+        </div>
+      </div></div>`).join('')}
+    <div><button class="btn alt" data-act="addstep" ${n >= 10 ? 'disabled' : ''}>+ Add a step</button></div>
+  </section>
+
+  <section class="sec"><h2>Quiz <small>Day 4</small></h2>
+    <p>Write 3 questions a reader can answer only if they paid attention. Mark the right answer with the circle.</p>
+    ${D.quiz.map((q, qi) => `<div class="qbox"><label>Question ${qi + 1}${tx('quiz.' + qi + '.q', q.q, 140, 'Why do you crease the fold with your fingernail?')}</label>
+      ${q.choices.map((c, ci) => `<div class="choice"><input type="radio" name="ans${qi}" data-ans="${qi}" value="${ci}" ${q.answer === ci ? 'checked' : ''} aria-label="Choice ${ci + 1} is the right answer">${tx('quiz.' + qi + '.choices.' + ci, c, 80, 'Choice ' + (ci + 1))}</div>`).join('')}</div>`).join('')}
+  </section>
+
+  <section class="sec"><h2>Silent test and revise <small>Days 5 and 6</small></h2>
+    <p>Click Preview and hand your Chromebook to a partner. They follow your book while you watch. You may not talk or help. Write down every place they get stuck, then fix your book.</p>
+    <label>Tester's name${tx('test.tester', D.test.tester, 30, 'Who tested your book?')}</label>
+    <label>Where did they get stuck or confused?${ta('test.stuck', D.test.stuck, 400, 3, 'On step 4 they folded the wrong corner because my photo was too far away.')}</label>
+    <label>Change 1 I made because of the test${tx('test.changes.0', D.test.changes[0], 200, 'I retook the step 4 photo closer up.')}</label>
+    <label>Change 2 I made because of the test${tx('test.changes.1', D.test.changes[1], 200, 'I split step 6 into two steps.')}</label>
+  </section>`;
+  drawTodo();
+}
+
+function setPath(path, val) {
+  const ks = path.split('.'); let o = D;
+  for (let i = 0; i < ks.length - 1; i++) o = o[ks[i]];
+  o[ks[ks.length - 1]] = val;
+}
+$('#form').addEventListener('input', e => {
+  const t = e.target;
+  if (t.dataset.ans != null) { D.quiz[+t.dataset.ans].answer = +t.value; }
+  else if (t.dataset.p) {
+    const p = t.dataset.p;
+    setPath(p, p === 'diff' ? +t.value : p === 'mins' ? Math.max(1, Math.min(60, +t.value || 1)) : t.value);
+    const m = /^steps\.(\d+)\.text$/.exec(p);
+    if (m) { const h = document.querySelector(`[data-hint="${m[1]}"]`); if (h) h.hidden = !weakStart(t.value); }
+  } else return;
+  drawTodo(); save();
+});
+
+/* two-click confirm for anything that deletes */
+function sure(btn, label) {
+  if (btn.dataset.sure) return true;
+  btn.dataset.sure = '1'; const old = btn.textContent; btn.textContent = label;
+  setTimeout(() => { if (btn.isConnected) { delete btn.dataset.sure; btn.textContent = old; } }, 3000);
+  return false;
+}
+document.addEventListener('click', async e => {
+  const t = e.target.closest('[data-act]'); if (!t || t.closest('#player')) return;
+  const a = t.dataset.act, i = +t.dataset.i;
+  if (a === 'cover') return openCam(u => { D.cover = u; changed(); });
+  if (a === 'photo') return openCam(u => { D.steps[i].img = u; changed(); });
+  if (a === 'color') { D.color = t.dataset.c; return changed(); }
+  if (a === 'addmat') { D.materials.push(''); return changed(); }
+  if (a === 'delmat') { D.materials.splice(i, 1); return changed(); }
+  if (a === 'addstep') { if (D.steps.length < 10) D.steps.push(blankStep()); return changed(); }
+  if (a === 'delstep') { if (!sure(t, 'Really remove?')) return; D.steps.splice(i, 1); return changed(); }
+  if (a === 'up' || a === 'down') { const j = a === 'up' ? i - 1 : i + 1; [D.steps[i], D.steps[j]] = [D.steps[j], D.steps[i]]; return changed(); }
+  if (a === 'preview') return DIY.open(Object.assign({}, D, { id: '' }), { preview: true, notes: true });
+  if (a === 'backup') return download();
+  if (a === 'turnin') { if (!t.disabled) download(); return; }
+  if (a === 'openfile') { if (!sure(t, 'This replaces your book. Click again')) return; return $('#filein').click(); }
+  if (a === 'startover') { if (!sure(t, 'Erase everything? Click again')) return; D = blank(); return changed(); }
+});
+function changed() { draw(); save(); }
+
+/* ---------- files ---------- */
+function thumbOf(src) {
+  return new Promise(res => { if (!src) return res(''); const im = new Image(); im.onload = () => { const c = document.createElement('canvas'); c.width = 240; c.height = 180; c.getContext('2d').drawImage(im, 0, 0, 240, 180); res(c.toDataURL('image/jpeg', .6)); }; im.onerror = () => res(''); im.src = src; });
+}
+async function download() {
+  const b = Object.assign({}, D, { id: [slug(D.title), slug(D.author)].filter(Boolean).join('-') || 'my-book', thumb: await thumbOf(D.cover), updated: Date.now() });
+  const blob = new Blob([JSON.stringify(b)], { type: 'application/json' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = ((D.author.trim() || 'Author') + ' - ' + (D.title.trim() || 'My book')).replace(/[\\/:*?"<>|]+/g, '') + '.diybook';
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  $('#saved').textContent = 'File saved to Downloads';
+}
+$('#filein').addEventListener('change', async e => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  try { D = adopt(JSON.parse(await f.text())); changed(); $('#saved').textContent = 'Backup opened'; }
+  catch (err) { $('#saved').textContent = 'That file is not a DIY book.'; }
+});
+
+/* ---------- camera ---------- */
+let camStream = null, camCb = null, camFacing = 'user', camData = '';
+const vid = $('#camvid');
+function crop(src, sw, sh) {
+  const W = 960, H = 720, r = W / H; let w = sw, h = sh, x = 0, y = 0;
+  if (sw / sh > r) { w = sh * r; x = (sw - w) / 2; } else { h = sw / r; y = (sh - h) / 2; }
+  const c = document.createElement('canvas'); c.width = W; c.height = H; c.getContext('2d').drawImage(src, x, y, w, h, 0, 0, W, H);
+  return c.toDataURL('image/jpeg', .72);
+}
+function stopCam() { if (camStream) camStream.getTracks().forEach(t => t.stop()); camStream = null; vid.srcObject = null; }
+async function startCam() {
+  stopCam(); $('#cammsg').textContent = '';
+  try {
+    camStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: camFacing, width: { ideal: 1280 }, height: { ideal: 960 } }, audio: false });
+    vid.srcObject = camStream; await vid.play();
+  } catch (e) { $('#cammsg').textContent = 'The camera is not available. Allow camera access when asked, or upload a photo instead.'; }
+}
+function camMode(done) { $('#camlive').hidden = done; $('#camdone').hidden = !done; vid.hidden = done; $('#camshot').hidden = !done; }
+function openCam(cb) { camCb = cb; camData = ''; $('#cam').hidden = false; camMode(false); startCam(); }
+function closeCam() { stopCam(); $('#cam').hidden = true; camCb = null; }
+function shot(u) { camData = u; $('#camshot').src = u; camMode(true); stopCam(); }
+$('#camsnap').onclick = () => { if (!camStream || !vid.videoWidth) { $('#cammsg').textContent = 'The camera is not ready yet.'; return; } shot(crop(vid, vid.videoWidth, vid.videoHeight)); };
+$('#camflip').onclick = () => { camFacing = camFacing === 'user' ? 'environment' : 'user'; startCam(); };
+$('#camre').onclick = () => { camMode(false); startCam(); };
+$('#camuse').onclick = () => { const cb = camCb, u = camData; closeCam(); if (cb && u) cb(u); };
+$('#camx').onclick = closeCam;
+$('#camup').onclick = () => $('#camfile').click();
+$('#camfile').addEventListener('change', e => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  const im = new Image(), url = URL.createObjectURL(f);
+  im.onload = () => { shot(crop(im, im.naturalWidth, im.naturalHeight)); URL.revokeObjectURL(url); };
+  im.onerror = () => { $('#cammsg').textContent = 'That file is not a picture.'; URL.revokeObjectURL(url); };
+  im.src = url;
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#cam').hidden) closeCam(); });
+
+/* ---------- start ---------- */
+draw();
+dbGet('draft').then(d => { if (d) { D = adopt(d); draw(); $('#saved').textContent = 'Picked up where you left off'; } }).catch(() => {});
+</script>
+</body>
+</html>
