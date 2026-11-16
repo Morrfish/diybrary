@@ -43,7 +43,7 @@ aside{position:sticky;top:12px;display:flex;flex-direction:column;gap:14px}
 .todo li.ok{color:var(--good);font-weight:700}
 .todo li.ok::before{background:var(--good);border-color:var(--good)}
 .saved{font:700 12px var(--type);color:var(--muted);text-transform:uppercase;letter-spacing:.08em;min-height:16px}
-#cam{position:fixed;inset:0;background:rgba(20,25,48,.9);z-index:60;display:flex;align-items:center;justify-content:center;padding:12px}
+#cam,#turned{position:fixed;inset:0;background:rgba(20,25,48,.9);z-index:60;display:flex;align-items:center;justify-content:center;padding:12px}
 .cambox{background:var(--card);border-radius:14px;padding:16px;width:min(680px,100%);display:flex;flex-direction:column;gap:12px}
 .cambox video,.cambox img{width:100%;aspect-ratio:4/3;object-fit:cover;background:#000;border-radius:10px;display:block}
 .camrow{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
@@ -85,6 +85,22 @@ aside{position:sticky;top:12px;display:flex;flex-direction:column;gap:14px}
     <div class="camrow" id="camdone" hidden><button class="btn" id="camuse">Use this photo</button><button class="btn alt" id="camre">Retake</button></div>
     <p style="margin:0;font-size:14px;color:var(--muted)">Get close. Show your hands doing the step. Use a plain background. No faces needed.</p>
     <input type="file" id="camfile" accept="image/*" hidden>
+  </div>
+</div>
+
+<div id="turned" hidden role="dialog" aria-modal="true" aria-labelledby="turnedh">
+  <div class="cambox">
+    <h2 id="turnedh">One more step: hand it in</h2>
+    <p style="margin:0">Your book file is saved in the <b>Downloads</b> folder on this Chromebook. It is called:</p>
+    <p class="callno" id="turnedname" style="font-size:15px;padding:8px;overflow-wrap:anywhere"></p>
+    <ol style="margin:0;padding-left:22px;font-size:17px;line-height:1.6">
+      <li>Open <b>Google Classroom</b> and find the DIYbrary assignment.</li>
+      <li>Click <b>Add or create</b>, then <b>File</b>.</li>
+      <li>Choose the book file from <b>Downloads</b>.</li>
+      <li>Click <b>Turn in</b>.</li>
+    </ol>
+    <p style="margin:0;color:var(--muted)">Your book is not turned in until you finish these steps. If you change your book later, click Turn in my book again and attach the new file.</p>
+    <div class="camrow"><button class="btn" id="turnedok">Got it</button></div>
   </div>
 </div>
 
@@ -238,7 +254,7 @@ document.addEventListener('click', async e => {
   if (a === 'up' || a === 'down') { const j = a === 'up' ? i - 1 : i + 1; [D.steps[i], D.steps[j]] = [D.steps[j], D.steps[i]]; return changed(); }
   if (a === 'preview') return DIY.open(Object.assign({}, D, { id: '' }), { preview: true, notes: true });
   if (a === 'backup') return download();
-  if (a === 'turnin') { if (!t.disabled) download(); return; }
+  if (a === 'turnin') { if (!t.disabled) { $('#turnedname').textContent = await download(); $('#turned').hidden = false; $('#turnedok').focus(); } return; }
   if (a === 'openfile') { if (!sure(t, 'This replaces your book. Click again')) return; return $('#filein').click(); }
   if (a === 'startover') { if (!sure(t, 'Erase everything? Click again')) return; D = blank(); return changed(); }
 });
@@ -255,7 +271,9 @@ async function download() {
   a.download = ((D.author.trim() || 'Author') + ' - ' + (D.title.trim() || 'My book')).replace(/[\\/:*?"<>|]+/g, '') + '.diybook';
   document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
   $('#saved').textContent = 'File saved to Downloads';
+  return a.download;
 }
+$('#turnedok').onclick = () => { $('#turned').hidden = true; };
 $('#filein').addEventListener('change', async e => {
   const f = e.target.files[0]; e.target.value = ''; if (!f) return;
   try { D = adopt(JSON.parse(await f.text())); changed(); $('#saved').textContent = 'Backup opened'; }
