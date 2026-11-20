@@ -157,7 +157,7 @@ const tx = (p, v, max, ph) => `<input type="text" data-p="${p}" maxlength="${max
 function draw() {
   const n = D.steps.length;
   $('#form').innerHTML = `
-  <section class="sec"><h2>The cover <small>Day 1 and 3</small></h2>
+  <section class="sec"><h2>The cover <small>Days 1 and 2</small></h2>
     <div class="coverrow">
       <button class="photo" data-act="cover">${D.cover ? `<img src="${esc(D.cover)}" alt="Cover photo">` : 'Take cover photo'}</button>
       <div class="fields">
@@ -176,13 +176,13 @@ function draw() {
     <div><label>Book color</label><div class="swatches">${COLORS.map(c => `<button style="--c:${c}" class="${D.color === c ? 'on' : ''}" data-act="color" data-c="${c}" aria-label="Book color ${c}"></button>`).join('')}</div></div>
   </section>
 
-  <section class="sec"><h2>Materials <small>Day 2</small></h2>
+  <section class="sec"><h2>Materials <small>Day 1</small></h2>
     <p>List everything a beginner needs, with amounts. "2 sheets of printer paper" is better than "paper".</p>
     ${D.materials.map((m, i) => `<div class="matrow">${tx('materials.' + i, m, 60, 'What they need')}<button class="mini" data-act="delmat" data-i="${i}" ${D.materials.length < 2 ? 'disabled' : ''} aria-label="Remove material ${i + 1}">Remove</button></div>`).join('')}
     <div><button class="mini" data-act="addmat" ${D.materials.length >= 15 ? 'disabled' : ''}>+ Add a material</button></div>
   </section>
 
-  <section class="sec"><h2>Steps <small>Days 3 and 4</small></h2>
+  <section class="sec"><h2>Steps <small>Days 2 and 3</small></h2>
     <p>One action per step. Start each step with an action word like Fold, Cut, Hold or Mix. Write for someone who has never done this.</p>
     ${D.steps.map((s, i) => `<div class="step">
       <div class="stephead"><span class="num">Step ${i + 1}</span><span class="sp"></span>
@@ -201,13 +201,13 @@ function draw() {
     <div><button class="btn alt" data-act="addstep" ${n >= 10 ? 'disabled' : ''}>+ Add a step</button></div>
   </section>
 
-  <section class="sec"><h2>Quiz <small>Day 4</small></h2>
+  <section class="sec"><h2>Quiz <small>Day 3</small></h2>
     <p>Write 3 questions a reader can answer only if they paid attention. Mark the right answer with the circle.</p>
     ${D.quiz.map((q, qi) => `<div class="qbox"><label>Question ${qi + 1}${tx('quiz.' + qi + '.q', q.q, 140, 'Why do you crease the fold with your fingernail?')}</label>
       ${q.choices.map((c, ci) => `<div class="choice"><input type="radio" name="ans${qi}" data-ans="${qi}" value="${ci}" ${q.answer === ci ? 'checked' : ''} aria-label="Choice ${ci + 1} is the right answer">${tx('quiz.' + qi + '.choices.' + ci, c, 80, 'Choice ' + (ci + 1))}</div>`).join('')}</div>`).join('')}
   </section>
 
-  <section class="sec"><h2>Silent test and revise <small>Days 5 and 6</small></h2>
+  <section class="sec"><h2>Silent test and revise <small>Day 4</small></h2>
     <p>Click Preview and hand your Chromebook to a partner. They follow your book while you watch. You may not talk or help. Write down every place they get stuck, then fix your book.</p>
     <label>Tester's name${tx('test.tester', D.test.tester, 30, 'Who tested your book?')}</label>
     <label>Where did they get stuck or confused?${ta('test.stuck', D.test.stuck, 400, 3, 'On step 4 they folded the wrong corner because my photo was too far away.')}</label>
